@@ -18,6 +18,12 @@ body {
     font-style: normal;
   
 }
+.text-centera{
+  font-family: "Agbalumo", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 70px;
+}
 
 .frontbt{
   display: flex;
