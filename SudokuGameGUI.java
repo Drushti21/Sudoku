@@ -21,7 +21,6 @@ public class SudokuGameGUI {
     private Timer timer;
     private JLabel timerLabel;
     private JButton startButton, resetButton;
-    private int selectedNumber = 0; // Stores selected number
 
     private static final Color LIGHT_BLUE = new Color(173, 216, 230); // Light Blue for editable cells
     private static final Color LIGHT_RED = new Color(255, 182, 193);  // Light Red for errors
@@ -48,19 +47,26 @@ public class SudokuGameGUI {
                     cells[row][col].setBackground(LIGHT_GRAY);
                 } else {
                     cells[row][col].setBackground(LIGHT_BLUE);
-                }
 
-                final int r = row, c = col;
-                cells[row][col].addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if (selectedNumber != 0 && cells[r][c].isEditable()) {
-                            cells[r][c].setText(String.valueOf(selectedNumber));
-                            validateCell(r, c);
+                    // Add KeyListener to validate input immediately
+                    final int r = row, c = col;
+                    cells[row][col].addKeyListener(new KeyAdapter() {
+                        @Override
+                        public void keyReleased(KeyEvent e) {
+                            String text = cells[r][c].getText();
+                            if (text.matches("[1-9]")) {
+                                int num = Integer.parseInt(text);
+                                if (!isValidMove(r, c, num)) {
+                                    cells[r][c].setBackground(LIGHT_RED); // Highlight incorrect move
+                                } else {
+                                    cells[r][c].setBackground(LIGHT_BLUE); // Restore correct color
+                                }
+                            } else {
+                                cells[r][c].setBackground(LIGHT_BLUE); // Reset if input is deleted
+                            }
                         }
-                    }
-                });
-
+                    });
+                }
                 gridPanel.add(cells[row][col]);
             }
         }
@@ -85,16 +91,6 @@ public class SudokuGameGUI {
 
         frame.add(gridPanel, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
-        
-        JPanel numberPanel = new JPanel(new GridLayout(1, 9, 5, 5));
-        for (int i = 1; i <= 9; i++) {
-            JButton numButton = new JButton(String.valueOf(i));
-            numButton.setFont(new Font("Arial", Font.BOLD, 20));
-            numButton.addActionListener(e -> selectedNumber = Integer.parseInt(numButton.getText()));
-            numberPanel.add(numButton);
-        }
-        
-        frame.add(numberPanel, BorderLayout.NORTH);
 
         frame.setVisible(true);
     }
@@ -136,7 +132,6 @@ public class SudokuGameGUI {
                 }
             }
         }
-        selectedNumber = 0;
     }
 
     private void checkSolution() {
@@ -163,18 +158,6 @@ public class SudokuGameGUI {
             JOptionPane.showMessageDialog(null, "Congratulations! You solved the puzzle!");
         } else {
             JOptionPane.showMessageDialog(null, "Some numbers are incorrect. Try again!");
-        }
-    }
-
-    private void validateCell(int row, int col) {
-        String text = cells[row][col].getText();
-        if (!text.isEmpty()) {
-            int num = Integer.parseInt(text);
-            if (!isValidMove(row, col, num)) {
-                cells[row][col].setBackground(LIGHT_RED);
-            } else {
-                cells[row][col].setBackground(LIGHT_BLUE);
-            }
         }
     }
 
