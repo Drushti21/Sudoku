@@ -26,7 +26,7 @@ public class SudokuMainMenu extends JFrame {
         mainPanel.setLayout(new GridBagLayout());
 
         JLabel titleLabel = new JLabel("SUDOKU", JLabel.CENTER);
-        titleLabel.setFont(new Font("Agbalumo", Font.BOLD, 70));
+        titleLabel.setFont(new Font("Serif Bold Italic", Font.BOLD, 70));
         titleLabel.setForeground(Color.BLACK);
 
         JLabel subTitleLabel = new JLabel("Select Your Level", JLabel.CENTER);
@@ -34,12 +34,13 @@ public class SudokuMainMenu extends JFrame {
         subTitleLabel.setForeground(Color.BLACK);
 
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1, 20, 20));
+        buttonPanel.setLayout(new GridLayout(4, 1, 20, 20));
         buttonPanel.setOpaque(false);
 
         JButton easyButton = createStyledButton("Easy Level");
         JButton mediumButton = createStyledButton("Medium Level");
         JButton hardButton = createStyledButton("Hard Level");
+        JButton scoreButton = createStyledButton("Scores");
 
         easyButton.addActionListener(e -> {
             new SudokuGameGUI(); // Launch Easy Level
@@ -51,13 +52,16 @@ public class SudokuMainMenu extends JFrame {
         });
 
         hardButton.addActionListener(e -> {
-            new SudokuGameGUI2(); // Launch Hard Level
+            new SudokuGameGUI(); // Launch Hard Level (Assumed)
             dispose();
         });
+
+        scoreButton.addActionListener(e -> new ScorePage());
 
         buttonPanel.add(easyButton);
         buttonPanel.add(mediumButton);
         buttonPanel.add(hardButton);
+        buttonPanel.add(scoreButton);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -79,12 +83,12 @@ public class SudokuMainMenu extends JFrame {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(200, 60));
         button.setFont(new Font("Arial", Font.BOLD, 18));
-        button.setBackground(new Color(4, 160, 222)); // Default Blue Background (#04a0de)
+        button.setBackground(new Color(4, 160, 222));
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder());
-        
+
         // Stadium shape (Rounded corners)
         button.setBorder(BorderFactory.createLineBorder(new Color(4, 160, 222), 4, true));
         button.setOpaque(true);
@@ -93,21 +97,18 @@ public class SudokuMainMenu extends JFrame {
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent evt) {
                 button.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(239, 71, 111), 4, true),   // Red Border
+                        BorderFactory.createLineBorder(new Color(239, 71, 111), 4, true),
                         BorderFactory.createCompoundBorder(
-                                BorderFactory.createLineBorder(new Color(255, 209, 102), 4, true),  // Yellow Border
+                                BorderFactory.createLineBorder(new Color(255, 209, 102), 4, true),
                                 BorderFactory.createCompoundBorder(
-                                        BorderFactory.createLineBorder(new Color(6, 214, 160), 4, true),  // Green Border
-                                        BorderFactory.createLineBorder(new Color(17, 138, 178), 4, true)  // Blue Border
-                                )
-                        )
-                ));
-                button.setBackground(new Color(7, 59, 76)); // Darker Background (#073b4c)
+                                        BorderFactory.createLineBorder(new Color(6, 214, 160), 4, true),
+                                        BorderFactory.createLineBorder(new Color(17, 138, 178), 4, true)))));
+                button.setBackground(new Color(7, 59, 76));
                 button.setForeground(Color.WHITE);
             }
 
             public void mouseExited(MouseEvent evt) {
-                button.setBackground(new Color(4, 160, 222)); // Reset to Original Blue
+                button.setBackground(new Color(4, 160, 222));
                 button.setForeground(Color.BLACK);
                 button.setBorder(BorderFactory.createLineBorder(new Color(4, 160, 222), 4, true));
             }
