@@ -1,30 +1,45 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 
 public class SudokuGameGUI2 {
     private static final int SIZE = 9;
     private int[][] board = {
-        {2, 0, 0, 0, 6, 0, 0, 0, 9},
-        {0, 0, 0, 8, 0, 0, 0, 1, 0},
-        {0, 0, 9, 0, 0, 0, 7, 5, 0},
-        {0, 7, 0, 0, 5, 3, 0, 0, 8},
-        {3, 0, 0, 0, 0, 9, 0, 0, 6},
-        {0, 0, 8, 7, 0, 0, 0, 4, 0},
-        {0, 5, 7, 0, 0, 0, 9, 0, 0},
-        {1, 9, 0, 0, 0, 4, 0, 0, 0},
-        {8, 0, 0, 0, 7, 0, 0, 0, 2}
+            { 0, 3, 0, 6, 0, 8, 0, 0, 2 },
+            { 6, 0, 2, 0, 0, 5, 0, 4, 0 },
+            { 0, 9, 0, 0, 4, 2, 5, 6, 7 },
+            { 0, 0, 9, 0, 6, 0, 4, 2, 0 },
+            { 4, 0, 0, 8, 5, 3, 7, 9, 1 },
+            { 0, 1, 3, 0, 2, 0, 0, 5, 0 },
+            { 9, 0, 0, 0, 3, 7, 0, 8, 4 },
+            { 2, 8, 7, 0, 1, 9, 0, 3, 0 },
+            { 0, 0, 5, 2, 8, 0, 1, 7, 0 }
+    };
+
+    private int[][] solution = {
+            { 5, 3, 4, 6, 7, 8, 9, 1, 2 },
+            { 6, 7, 2, 1, 9, 5, 3, 4, 8 },
+            { 1, 9, 8, 3, 4, 2, 5, 6, 7 },
+            { 8, 5, 9, 7, 6, 1, 4, 2, 3 },
+            { 4, 2, 6, 8, 5, 3, 7, 9, 1 },
+            { 7, 1, 3, 9, 2, 4, 8, 5, 6 },
+            { 9, 6, 1, 5, 3, 7, 2, 8, 4 },
+            { 2, 8, 7, 4, 1, 9, 6, 3, 5 },
+            { 3, 4, 5, 2, 8, 6, 1, 7, 9 }
     };
 
     private JTextField[][] cells = new JTextField[SIZE][SIZE];
-    private int timeLeft = 30;
+    private int elapsedTime = 0;
     private Timer timer;
     private JLabel timerLabel;
-    private JButton startButton, resetButton;
+    private JButton startButton, resetButton, hintButton;
+    private Random random = new Random();
+    private boolean isTimerRunning = false;
 
-    private static final Color LIGHT_BLUE = new Color(173, 216, 230); // Light Blue for editable cells
-    private static final Color LIGHT_RED = new Color(255, 182, 193);  // Light Red for errors
-    private static final Color LIGHT_GRAY = new Color(211, 211, 211); // Light Gray for pre-filled cells
+    private static final Color LIGHT_BLUE = new Color(173, 216, 230);
+    private static final Color LIGHT_RED = new Color(255, 182, 193);
+    private static final Color LIGHT_GRAY = new Color(211, 211, 211);
 
     public SudokuGameGUI2() {
         JFrame frame = new JFrame("Sudoku Game");
@@ -47,8 +62,6 @@ public class SudokuGameGUI2 {
                     cells[row][col].setBackground(LIGHT_GRAY);
                 } else {
                     cells[row][col].setBackground(LIGHT_BLUE);
-
-                    // Add KeyListener to validate input immediately
                     final int r = row, c = col;
                     cells[row][col].addKeyListener(new KeyAdapter() {
                         @Override
@@ -57,25 +70,50 @@ public class SudokuGameGUI2 {
                             if (text.matches("[1-9]")) {
                                 int num = Integer.parseInt(text);
                                 if (!isValidMove(r, c, num)) {
-                                    cells[r][c].setBackground(LIGHT_RED); // Highlight incorrect move
+                                    cells[r][c].setBackground(LIGHT_RED);
                                 } else {
-                                    cells[r][c].setBackground(LIGHT_BLUE); // Restore correct color
+                                    cells[r][c].setBackground(LIGHT_BLUE);
                                 }
                             } else {
-                                cells[r][c].setBackground(LIGHT_BLUE); // Reset if input is deleted
+                                cells[r][c].setBackground(LIGHT_BLUE);
+                            }
+
+                            if (!isTimerRunning) {
+                                startGame();
+                            }
+                        }
+
+                        @Override
+                        public void keyTyped(KeyEvent e) {
+                            char input = e.getKeyChar();
+                            if (!Character.isDigit(input) || input == '0') {
+                                e.consume();
                             }
                         }
                     });
                 }
+
+                if ((row % 3 == 2 && col % 3 == 2) || (row % 3 == 2 && col == SIZE - 1)
+                        || (col % 3 == 2 && row == SIZE - 1)) {
+                    cells[row][col].setBorder(BorderFactory.createMatteBorder(1, 1, 2, 2, Color.BLACK));
+                } else if (row % 3 == 2) {
+                    cells[row][col].setBorder(BorderFactory.createMatteBorder(1, 1, 2, 1, Color.BLACK));
+                } else if (col % 3 == 2) {
+                    cells[row][col].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 2, Color.BLACK));
+                } else {
+                    cells[row][col].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.GRAY));
+                }
+
                 gridPanel.add(cells[row][col]);
             }
         }
 
-        timerLabel = new JLabel("Time Left: 30s", JLabel.CENTER);
+        timerLabel = new JLabel("Elapsed Time: 0s", JLabel.CENTER);
         timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         frame.add(timerLabel, BorderLayout.NORTH);
 
         startButton = new JButton("Start Game");
+        startButton.setEnabled(false); // Timer starts with first input
         startButton.addActionListener(e -> startGame());
 
         JButton checkButton = new JButton("Check Solution");
@@ -84,10 +122,14 @@ public class SudokuGameGUI2 {
         resetButton = new JButton("Reset Game");
         resetButton.addActionListener(e -> resetGame());
 
+        hintButton = new JButton("Hint");
+        hintButton.addActionListener(e -> giveHint());
+
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(startButton);
         bottomPanel.add(checkButton);
         bottomPanel.add(resetButton);
+        bottomPanel.add(hintButton);
 
         frame.add(gridPanel, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
@@ -96,39 +138,30 @@ public class SudokuGameGUI2 {
     }
 
     private void startGame() {
-        if (timer != null && timer.isRunning()) {
-            timer.stop();
+        if (!isTimerRunning) {
+            timer = new Timer(1000, e -> {
+                elapsedTime++;
+                timerLabel.setText("Elapsed Time: " + elapsedTime + "s");
+            });
+            timer.start();
+            isTimerRunning = true;
         }
-        timeLeft = 30;
-        timerLabel.setText("Time Left: 30s");
-        startButton.setEnabled(false);
-
-        timer = new Timer(1000, e -> {
-            if (timeLeft > 0) {
-                timeLeft--;
-                timerLabel.setText("Time Left: " + timeLeft + "s");
-            } else {
-                timer.stop();
-                JOptionPane.showMessageDialog(null, "Time's up! Game Over.");
-                startButton.setEnabled(true);
-            }
-        });
-        timer.start();
     }
 
     private void resetGame() {
         if (timer != null) {
             timer.stop();
         }
-        timeLeft = 30;
-        timerLabel.setText("Time Left: 30s");
-        startButton.setEnabled(true);
+        elapsedTime = 0;
+        timerLabel.setText("Elapsed Time: 0s");
+        isTimerRunning = false;
 
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 if (board[row][col] == 0) {
                     cells[row][col].setText("");
                     cells[row][col].setBackground(LIGHT_BLUE);
+                    cells[row][col].setEditable(true);
                 }
             }
         }
@@ -144,7 +177,7 @@ public class SudokuGameGUI2 {
                     isCorrect = false;
                 } else {
                     int num = Integer.parseInt(text);
-                    if (!isValidMove(row, col, num)) {
+                    if (num != solution[row][col]) {
                         isCorrect = false;
                         cells[row][col].setBackground(LIGHT_RED);
                     } else {
@@ -155,31 +188,98 @@ public class SudokuGameGUI2 {
         }
 
         if (isCorrect) {
+            // Stop the timer when the solution is correct
+            if (timer != null) {
+                timer.stop();
+            }
+
             JOptionPane.showMessageDialog(null, "Congratulations! You solved the puzzle!");
+            showRatingDialog();
         } else {
             JOptionPane.showMessageDialog(null, "Some numbers are incorrect. Try again!");
         }
     }
 
+    private void giveHint() {
+        int row, col;
+        do {
+            row = random.nextInt(SIZE);
+            col = random.nextInt(SIZE);
+        } while (cells[row][col].getText().length() > 0 || board[row][col] != 0);
+
+        int correctNumber = solution[row][col];
+        cells[row][col].setText(String.valueOf(correctNumber));
+        cells[row][col].setBackground(LIGHT_GRAY);
+        cells[row][col].setEditable(false);
+    }
+
     private boolean isValidMove(int row, int col, int num) {
         for (int i = 0; i < SIZE; i++) {
-            if (i != col && Integer.toString(num).equals(cells[row][i].getText())) return false;
-            if (i != row && Integer.toString(num).equals(cells[i][col].getText())) return false;
+            if (i != col && Integer.toString(num).equals(cells[row][i].getText()))
+                return false;
+            if (i != row && Integer.toString(num).equals(cells[i][col].getText()))
+                return false;
         }
 
         int startRow = (row / 3) * 3, startCol = (col / 3) * 3;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if ((startRow + i != row || startCol + j != col) &&
-                    Integer.toString(num).equals(cells[startRow + i][startCol + j].getText())) {
+        for (int i = startRow; i < startRow + 3; i++) {
+            for (int j = startCol; j < startCol + 3; j++) {
+                if (Integer.toString(num).equals(cells[i][j].getText()))
                     return false;
-                }
             }
         }
         return true;
     }
 
+    private void showRatingDialog() {
+        JDialog ratingDialog = new JDialog();
+        ratingDialog.setTitle("Rate the Game");
+        ratingDialog.setLayout(new BorderLayout());
+        ratingDialog.setSize(400, 200);
+        ratingDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        JLabel promptLabel = new JLabel("Please rate our game:", JLabel.CENTER);
+        promptLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        ratingDialog.add(promptLabel, BorderLayout.NORTH);
+
+        JPanel starsPanel = new JPanel();
+        ButtonGroup starGroup = new ButtonGroup(); // Use ButtonGroup in Swing
+
+        // Store buttons in a list for later iteration
+        JToggleButton[] starButtons = new JToggleButton[5];
+
+        for (int i = 0; i < 5; i++) {
+            starButtons[i] = new JToggleButton(new StarIcon());
+            starButtons[i].setActionCommand(String.valueOf(i + 1)); // Star rating 1 to 5
+            starGroup.add(starButtons[i]); // Add the button to the group
+            starsPanel.add(starButtons[i]);
+        }
+
+        JButton submitButton = new JButton("Submit");
+        submitButton.addActionListener(e -> {
+            // Check if any star is selected
+            boolean selected = false;
+            for (JToggleButton button : starButtons) {
+                if (button.isSelected()) {
+                    System.out.println("User rated: " + button.getActionCommand() + " stars");
+                    selected = true;
+                    break;
+                }
+            }
+            if (selected) {
+                System.out.println("Thank you for your feedback!");
+                ratingDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(ratingDialog, "Please select a star rating.");
+            }
+        });
+
+        ratingDialog.add(starsPanel, BorderLayout.CENTER);
+        ratingDialog.add(submitButton, BorderLayout.SOUTH);
+        ratingDialog.setVisible(true);
+    }
+
     public static void main(String[] args) {
-        new SudokuGameGUI2();
+        SwingUtilities.invokeLater(SudokuGameGUI::new);
     }
 }
