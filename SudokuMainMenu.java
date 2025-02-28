@@ -12,10 +12,8 @@ public class SudokuMainMenu extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Load the background image
-        backgroundImage = new ImageIcon("bg.png").getImage(); // Ensure "bg.png" is in your project directory
+        backgroundImage = new ImageIcon("bg2.png").getImage();
 
-        // Create a panel with custom painting for the background
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -43,16 +41,17 @@ public class SudokuMainMenu extends JFrame {
         JButton scoreButton = createStyledButton("Scores");
 
         easyButton.addActionListener(e -> {
-            new SudokuGameGUI(); // Launch Easy Level
+            new SudokuGameGUI();
             dispose();
         });
 
         mediumButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Medium Level not yet implemented!");
+            new SudokuGameGUI3();
+            dispose();
         });
 
         hardButton.addActionListener(e -> {
-            new SudokuGameGUI(); // Launch Hard Level (Assumed)
+            new SudokuGameGUI2();
             dispose();
         });
 
@@ -80,37 +79,52 @@ public class SudokuMainMenu extends JFrame {
     }
 
     private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+
+            @Override
+            protected void paintBorder(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getForeground());
+                g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 30, 30);
+                g2.dispose();
+            }
+        };
         button.setPreferredSize(new Dimension(200, 60));
         button.setFont(new Font("Arial", Font.BOLD, 18));
         button.setBackground(new Color(4, 160, 222));
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createEmptyBorder());
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
 
-        // Stadium shape (Rounded corners)
-        button.setBorder(BorderFactory.createLineBorder(new Color(4, 160, 222), 4, true));
-        button.setOpaque(true);
-
-        // Multi-color hover effect
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent evt) {
-                button.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(239, 71, 111), 4, true),
-                        BorderFactory.createCompoundBorder(
-                                BorderFactory.createLineBorder(new Color(255, 209, 102), 4, true),
-                                BorderFactory.createCompoundBorder(
-                                        BorderFactory.createLineBorder(new Color(6, 214, 160), 4, true),
-                                        BorderFactory.createLineBorder(new Color(17, 138, 178), 4, true)))));
                 button.setBackground(new Color(7, 59, 76));
                 button.setForeground(Color.WHITE);
+                button.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(239, 71, 111), 3, true),
+                        BorderFactory.createCompoundBorder(
+                                BorderFactory.createLineBorder(new Color(255, 209, 102), 3, true),
+                                BorderFactory.createCompoundBorder(
+                                        BorderFactory.createLineBorder(new Color(6, 214, 160), 3, true),
+                                        BorderFactory.createLineBorder(new Color(17, 138, 178), 3, true))))) ;
             }
 
             public void mouseExited(MouseEvent evt) {
                 button.setBackground(new Color(4, 160, 222));
                 button.setForeground(Color.BLACK);
-                button.setBorder(BorderFactory.createLineBorder(new Color(4, 160, 222), 4, true));
+                button.setBorder(BorderFactory.createLineBorder(new Color(4, 160, 222), 3, true));
             }
         });
 
