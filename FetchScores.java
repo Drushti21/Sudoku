@@ -1,16 +1,12 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class FetchScores {
+    private static final String DB_URL = "jdbc:sqlite:sudoku.db";
+
     public static void displayScores() {
-        String url = "jdbc:sqlite:sudoku.db"; // Database file
+        String query = "SELECT date, time_taken FROM Score ORDER BY time_taken ASC";
 
-        String query = "SELECT date, time_taken FROM scores ORDER BY time_taken ASC";
-
-        try (Connection conn = DriverManager.getConnection(url);
+        try (Connection conn = DriverManager.getConnection(DB_URL);
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(query)) {
 
