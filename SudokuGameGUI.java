@@ -1,6 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 public class SudokuGameGUI {
@@ -135,13 +139,24 @@ public class SudokuGameGUI {
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         frame.setVisible(true);
+
+        JButton scoreButton = new JButton("Scores");
+        scoreButton.addActionListener(e -> new ScorePage());
+
+        bottomPanel.add(scoreButton);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+
     }
 
     private void startGame() {
         if (!isTimerRunning) {
             timer = new Timer(1000, e -> {
                 elapsedTime++;
-                timerLabel.setText("Elapsed Time: " + elapsedTime + "s");
+                int minutes = elapsedTime / 60;
+                int seconds = elapsedTime % 60;
+                timerLabel.setText(String.format("Elapsed Time: %02d:%02d", minutes, seconds));
             });
             timer.start();
             isTimerRunning = true;
@@ -197,6 +212,32 @@ public class SudokuGameGUI {
             showRatingDialog();
         } else {
             JOptionPane.showMessageDialog(null, "Some numbers are incorrect. Try again!");
+        }
+        if (isCorrect) {
+            if (timer != null) {
+                timer.stop();
+            }
+
+            saveTimeToDatabase();
+
+            JOptionPane.showMessageDialog(null, "Congratulations! You solved the puzzle!");
+            showRatingDialog();
+        } else {
+            JOptionPane.showMessageDialog(null, "Some numbers are incorrect. Try again!");
+        }
+
+    }
+
+    private void saveTimeToDatabase() {
+        String url = "jdbc:sqlite:sudoku.db";
+
+        try (Connection conn = DriverManager.getConnection(url);
+                PreparedStatement pstmt = conn
+                        .prepareStatement("INSERT INTO scores (date, time_taken) VALUES (datetime('now'), ?)")) {
+            pstmt.setInt(1, elapsedTime);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
